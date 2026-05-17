@@ -11,6 +11,34 @@ const pool = new Pool({
     connectionString:"postgresql://neondb_owner:npg_ZTNPGMgBm10b@ep-super-bread-aqbnhjku.c-8.us-east-1.aws.neon.tech/neondb?sslmode=require"
 })
 
+const initDb=async()=>{
+    try{
+        await pool.query(
+            `
+            CREATE TABLE IF NOT EXISTS users(
+            id SERIAL PRIMARY KEY,
+            name VARCHAR(20),
+            email VARCHAR(20) NOT NULL,
+            password VARCHAR(20) NOT NULL,
+            is_active BOOLEAN DEFAULT true,
+            age INT,
+
+
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW()
+            )
+            `
+        )
+        console.log("database connected successfully!")
+
+    }
+    catch(error){
+        console.log(error);
+        
+    }
+}
+initDb()
+
 
 app.get('/', (req:Request, res:Response) => {
 //   res.send('Hello World!')
