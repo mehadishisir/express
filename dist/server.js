@@ -1,0 +1,175 @@
+import express, {} from "express";
+const app = express();
+const port = 5000;
+import { Pool } from "pg";
+import { config } from "./config";
+app.use(express.json());
+app.use(express.text());
+app.use(express.urlencoded({ extended: true }));
+const pool = new Pool({
+    connectionString: config.connection_string,
+});
+const initDb = async () => {
+    try {
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS users(
+            id SERIAL PRIMARY KEY,
+            name VARCHAR(20),
+            email VARCHAR(100) UNIQUE NOT NULL,
+            password VARCHAR(20) NOT NULL,
+            is_active BOOLEAN DEFAULT true,
+            age INT,
+
+
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW()
+            )
+            `);
+        console.log("database connected successfully!");
+    }
+    catch (error) {
+        console.log(error);
+    }
+};
+initDb();
+app.get('/', (req, res) => {
+    //   res.send('Hello World!')
+    res.status(200).json({
+        "message": "welcome"
+    });
+});
+app.post('/api/users', async (req, res) => {
+    //   console.log(req.body)\
+    const { name, email, password, age } = req.body;
+    try {
+        const result = await pool.query(`INSERT INTO users(name,email,password,age)
+    values($1,$2,$3,$4)
+    RETURNING *
+
+    `, [name, email, password, age]);
+        res.status(201).json({
+            message: "succeessfully created user",
+            data: result.rows[0]
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            message: error.message,
+            error: error,
+        });
+    }
+});
+app.get('/api/users', async (req, res) => {
+    try {
+        const result = await pool.query(`
+        SELECT * FROM users
+        `);
+        res.status(200).json({
+            success: true,
+            message: "users retrive successfully",
+            data: result.rows
+        });
+    }
+    catch (error) {
+        res.status(200).json({
+            success: false,
+            message: error.message,
+            error: error
+        });
+    }
+});
+app.get('/api/users/:id', async (req, res) => {
+    const id = req.params.id;
+    try {
+        const result = await pool.query(`
+SELECT * FROM users WHERE id=$1
+            
+            `, [id]);
+        if (result.rows.length === 0) {
+            res.status(404).json({
+                success: false,
+                message: "user not found",
+                data: {}
+            });
+        }
+        res.status(200).json({
+            success: true,
+            message: "get this user successfully",
+            data: result.rows[0]
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message,
+            error: error
+        });
+    }
+});
+app.put("/api/users/:id", async (req, res) => {
+    try {
+        const id = req.params.id;
+        const { name, password, age, is_active } = req.body;
+        const result = await pool.query(`
+      UPDATE users
+      SET
+        name = COALESCE($1, name),
+  password = COALESCE($2, password),
+  age = COALESCE($3, age),
+        is_active = COALESCE ($4,is_active) 
+      WHERE id = $5
+      RETURNING *
+      `, [name, password, age, is_active, id]);
+        // user not found
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+        res.status(200).json({
+            success: true,
+            message: "User updated successfully",
+            data: result.rows[0]
+        });
+    }
+    catch (error) {
+        console.log(error);
+        res.status(500).json({
+            success: false,
+            message: "Something went wrong"
+        });
+    }
+    app.delete("/api/users/:id", async (req, res) => {
+        try {
+            const id = req.params.id;
+            const result = await pool.query(`
+      DELETE FROM users
+      WHERE id = $1
+      RETURNING *
+      `, [id]);
+            // user not found
+            if (result.rows.length === 0) {
+                return res.status(404).json({
+                    success: false,
+                    message: "User not found"
+                });
+            }
+            res.status(200).json({
+                success: true,
+                message: "User deleted successfully",
+                data: result.rows[0]
+            });
+        }
+        catch (error) {
+            res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    });
+});
+app.listen(port, () => {
+    console.log(`Example app listening on port ${port}`);
+});
+//# sourceMappingURL=server.js.map
