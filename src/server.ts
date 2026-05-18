@@ -145,10 +145,10 @@ app.put("/api/users/:id", async (req: Request, res: Response) => {
       `
       UPDATE users
       SET
-        name = $1,
-        password = $2,
-        age = $3,
-        is_active = $4
+        name = COALESCE($1, name),
+  password = COALESCE($2, password),
+  age = COALESCE($3, age),
+        is_active = COALESCE ($4,is_active) 
       WHERE id = $5
       RETURNING *
       `,
@@ -179,6 +179,45 @@ app.put("/api/users/:id", async (req: Request, res: Response) => {
     });
 
   }
+  app.delete("/api/users/:id", async (req: Request, res: Response) => {
+
+  try {
+
+    const id = req.params.id;
+
+    const result = await pool.query(
+      `
+      DELETE FROM users
+      WHERE id = $1
+      RETURNING *
+      `,
+      [id]
+    );
+
+    // user not found
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "User deleted successfully",
+      data: result.rows[0]
+    });
+
+  } catch (error: any) {
+
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+
+  }
+
+});
 
 });
 app.listen(port, () => {
