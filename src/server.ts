@@ -111,7 +111,7 @@ SELECT * FROM users WHERE id=$1
             `,[id])
 
             if(result.rows.length===0){
-                res.status(500).json({
+                res.status(404).json({
                 success:false,
                 message:"user not found",
                 data:{}
@@ -132,6 +132,55 @@ SELECT * FROM users WHERE id=$1
             })
     }
 })
+
+app.put("/api/users/:id", async (req: Request, res: Response) => {
+
+  try {
+
+    const id = req.params.id;
+
+    const { name, password,age,is_active } = req.body;
+
+    const result = await pool.query(
+      `
+      UPDATE users
+      SET
+        name = $1,
+        password = $2,
+        age = $3,
+        is_active = $4
+      WHERE id = $5
+      RETURNING *
+      `,
+      [name, password, age,is_active, id]
+    );
+
+    // user not found
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "User updated successfully",
+      data: result.rows[0]
+    });
+
+  } catch (error: any) {
+
+    console.log(error);
+
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong"
+    });
+
+  }
+
+});
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
 })
