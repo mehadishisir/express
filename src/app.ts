@@ -1,5 +1,7 @@
 import express, { type Application, type Request, type Response } from "express"
-import pool, { initDb } from "./db";
+import pool from "./db";
+
+import router from "./modules/user/user.routes";
 const app :Application = express()
 
 
@@ -17,38 +19,8 @@ res.status(200).json({
     "message":"welcome"
 })
 })
-app.post ('/api/users',async(req:Request,res:Response)=>{
-//   console.log(req.body)\
-const {name,email,password,age} = req.body
 
-
-try{
-    const result = await pool.query(
-    `INSERT INTO users(name,email,password,age)
-    values($1,$2,$3,$4)
-    RETURNING *
-
-    `,[name,email,password,age]
-
-)
-res.status(201).json(
-    {
-        message : "succeessfully created user",
-        data: result.rows[0]
-
-    }
-)
-}catch(error:any){
-res.status(500).json(
-    {
-        message : error.message,
-        error : error,
-        
-
-    }
-)
-}
-})
+app.use("/api/users",router)
 app.get('/api/users',async (req:Request,res:Response)=>{
      
         try{
