@@ -13,7 +13,7 @@ export const initDb=async()=>{
             id SERIAL PRIMARY KEY,
             name VARCHAR(20),
             email VARCHAR(100) UNIQUE NOT NULL,
-            password VARCHAR(20) NOT NULL,
+            password VARCHAR(255) NOT NULL,
             is_active BOOLEAN DEFAULT true,
             age INT,
 
