@@ -3,6 +3,7 @@ import pool from "./db";
 
 import router from "./modules/user/user.routes";
 import { profileRoutes } from "./modules/profile/profile.router";
+import { authRouter } from "./modules/auth/auth.routes";
 const app :Application = express()
 
 
@@ -24,6 +25,7 @@ res.status(200).json({
 app.use("/api/users",router)
 
 app.use("/api/profiles",profileRoutes)
+app.use("/api/auth",authRouter)
 
 
 
