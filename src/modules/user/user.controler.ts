@@ -35,7 +35,7 @@ const result = await userService.getAllUserFromDB()
           }
         )
         }catch(error:any){
-  res.status(200).json(
+  res.status(500).json(
           {
             success:false,
             message:error.message,

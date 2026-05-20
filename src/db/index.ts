@@ -38,6 +38,8 @@ export const initDb=async()=>{
             updated_at TIMESTAMP DEFAULT NOW()
            ) 
             `)
+
+           
         console.log("database connected successfully!")
 
     }
