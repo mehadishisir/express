@@ -4,6 +4,7 @@ import pool from "./db";
 import router from "./modules/user/user.routes";
 import { profileRoutes } from "./modules/profile/profile.router";
 import { authRouter } from "./modules/auth/auth.routes";
+import fs from "fs"
 const app :Application = express()
 
 
@@ -12,6 +13,16 @@ app.use(express.text())
 app.use(express.urlencoded({extended:true}))
 
 
+
+app.use((req, res, next) => {
+  console.log('Method-URL-Time:',req.method,req.url, Date.now());
+  const log = `\nMethod -> ${req.method} - Time -> ${Date.now()} - URL -> ${req.url}\n`
+  fs.appendFile("logger.txt",log,(err)=>{
+    console.log(err)
+  })
+
+  next();
+});
 
 
 
